@@ -1,10 +1,10 @@
-Openstack Icehouse Installation scripts for Ubuntu 12.04 LTS
+Openstack Icehouse Installation scripts for Ubuntu 14.04 LTS
 ================
 
 For Openstack Controller :
 --------------------------
 
-Operating System : Ubuntu12.04 LTS
+Operating System : Ubuntu14.04 LTS
 
 NIC's:
 
@@ -27,7 +27,7 @@ Dashboard
 
 For Openstack Compute Node:
 --------------------------
-Operating System : Ubuntu12.04 LTS
+Operating System : Ubuntu14.04 LTS
 
 NIC's:
 
@@ -45,7 +45,7 @@ Neutron ( ovs-agent)
 
 For Openstack Network Node:
 --------------------------
-Operating System : Ubuntu12.04 LTS
+Operating System : Ubuntu14.04 LTS
 
 NIC's:
 
