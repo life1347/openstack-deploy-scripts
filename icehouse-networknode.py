@@ -38,6 +38,7 @@ def install_and_configure_neutron():
     neutron_plugin_conf = "/etc/neutron/plugins/ml2/ml2_conf.ini"
     neutron_dhcp_ini="/etc/neutron/dhcp_agent.ini"
     neutron_l3_ini="/etc/neutron/l3_agent.ini"
+    neutron_metadata_ini="/etc/neutron/metadata_agent.ini"
     execute("apt-get install openvswitch-switch openvswitch-datapath-dkms -y", True)
 	
     execute("ovs-vsctl --may-exist add-br br-int")
@@ -72,6 +73,13 @@ def install_and_configure_neutron():
     add_to_conf(neutron_dhcp_ini, "DEFAULT", "dhcp_driver", "neutron.agent.linux.dhcp.Dnsmasq")
 
     add_to_conf(neutron_l3_ini, "DEFAULT", "interface_driver", "neutron.agent.linux.interface.OVSInterfaceDriver")
+    
+    add_to_conf(neutron_metadata_ini, "DEFAULT", "auth_url", "http://%s:5000/v2.0"%ip_address_mgnt)
+    add_to_conf(neutron_metadata_ini, "DEFAULT", "auth_region", "region")
+    add_to_conf(neutron_metadata_ini, "DEFAULT", "admin_tenant_name", "service")
+    add_to_conf(neutron_metadata_ini, "DEFAULT", "admin_user", "neutron")
+    add_to_conf(neutron_metadata_ini, "DEFAULT", "admin_password", "neutron")
+    add_to_conf(neutron_metadata_ini, "DEFAULT", "metadata_proxy_shared_secret", "helloOpenStack")
 	
     execute("service neutron-plugin-openvswitch-agent restart", True)
     execute("service neutron-dhcp-agent restart", True)
