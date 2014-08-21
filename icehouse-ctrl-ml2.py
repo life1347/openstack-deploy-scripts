@@ -197,6 +197,8 @@ def install_and_configure_nova():
     add_to_conf(nova_conf, "DEFAULT", "neutron_url", "http://%s:9696/"%ip_address)
     add_to_conf(nova_conf, "DEFAULT", "firewall_driver", "nova.virt.firewall.NoopFirewallDriver")
     add_to_conf(nova_conf, "DEFAULT", "security_group_api", "neutron")
+    add_to_conf(nova_conf, "DEFAULT", "service_neutron_metadata_proxy", "true")
+    add_to_conf(nova_conf, "DEFAULT", "neutron_metadata_proxy_shared_secret", "helloOpenStack")
   
     execute("nova-manage db sync")
     execute("service nova-api restart", True)
