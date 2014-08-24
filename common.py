@@ -1,3 +1,12 @@
+#!/usr/bin/python
+import sys
+import os
+import time
+import fcntl
+import struct
+import socket
+import subprocess
+
 def kill_process(process_name):
     for proc in psutil.process_iter():
         if proc.name == process_name:
