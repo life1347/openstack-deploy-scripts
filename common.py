@@ -7,6 +7,10 @@ import struct
 import socket
 import subprocess
 
+# These modules will be loaded later after downloading
+iniparse = None
+psutil = None
+
 def kill_process(process_name):
     for proc in psutil.process_iter():
         if proc.name == process_name:
