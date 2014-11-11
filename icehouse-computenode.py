@@ -28,7 +28,7 @@ def install_and_configure_ntp():
     execute("sed -i 's/server 2.ubuntu.pool.ntp.org/#server 2.ubuntu.pool.ntp.org/g' /etc/ntp.conf")
     execute("sed -i 's/server 3.ubuntu.pool.ntp.org/#server 3.ubuntu.pool.ntp.org/g' /etc/ntp.conf")
     execute("sed -i 's/server ntp.ubuntu.com/server %s/g' /etc/ntp.conf" %ip_address)
-    execute("service ntp restart", True)	
+    execute("service ntp restart", True)
 
 def install_and_configure_nova():
     nova_conf = "/etc/nova/nova.conf"
@@ -72,22 +72,25 @@ def install_and_configure_nova():
     add_to_conf(nova_conf, "DEFAULT", "neutron_admin_auth_url", "http://%s:5000/v2.0/"%ip_address_mgnt)
     add_to_conf(nova_conf, "DEFAULT", "neutron_auth_strategy", "keystone")
     add_to_conf(nova_conf, "DEFAULT", "neutron_url", "http://%s:9696/"%ip_address_mgnt)
-   
+    add_to_conf(nova_conf, "DEFAULT", "metadata_host", "%s" %ip_address_mgnt)
+    add_to_conf(nova_conf, "DEFAULT", "service_neutron_metadata_proxy", "True")
+    add_to_conf(nova_conf, "DEFAULT", "neutron_metadata_proxy_shared_secret", "helloOpenStack")
+
     add_to_conf(nova_compute_conf, "DEFAULT", "libvirt_type", "qemu")
     add_to_conf(nova_compute_conf, "DEFAULT", "compute_driver", "libvirt.LibvirtDriver")
     add_to_conf(nova_compute_conf, "DEFAULT", "libvirt_vif_type", "ethernet")
-  
+
     execute("service libvirt-bin restart", True)
     execute("service nova-compute restart", True)
-   
+
 def install_and_configure_ovs():
     neutron_conf = "/etc/neutron/neutron.conf"
     neutron_paste_conf = "/etc/neutron/api-paste.ini"
-    neutron_plugin_conf = "/etc/neutron/plugins/ml2/ml2_conf.ini" 
+    neutron_plugin_conf = "/etc/neutron/plugins/ml2/ml2_conf.ini"
     execute("apt-get install openvswitch-switch openvswitch-datapath-dkms -y", True)
-	
+
     execute("ovs-vsctl --may-exist add-br br-int")
-  
+
     execute("apt-get install neutron-plugin-openvswitch-agent -y", True)
 
     add_to_conf(neutron_conf, "DEFAULT", "core_plugin", "neutron.plugins.openvswitch.ovs_neutron_plugin.OVSNeutronPluginV2")
@@ -105,7 +108,7 @@ def install_and_configure_ovs():
     add_to_conf(neutron_paste_conf, "filter:authtoken", "admin_tenant_name", "service")
     add_to_conf(neutron_paste_conf, "filter:authtoken", "admin_user", "neutron")
     add_to_conf(neutron_paste_conf, "filter:authtoken", "admin_password", "neutron")
-    
+
     add_to_conf(neutron_plugin_conf, "DATABASE", "sql_connection", "mysql://neutron:neutron@%s/neutron"%ip_address_mgnt)
     add_to_conf(neutron_plugin_conf, "OVS", "enable_tunneling", "True")
     add_to_conf(neutron_plugin_conf, "OVS", "local_ip", my_ip)

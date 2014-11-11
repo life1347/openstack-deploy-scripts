@@ -50,8 +50,8 @@ def _create_keystone_users():
     os.environ['SERVICE_TOKEN'] = 'ADMINTOKEN'
     os.environ['SERVICE_ENDPOINT'] = 'http://%s:35357/v2.0'% ip_address
     os.environ['no_proxy'] = "localhost,127.0.0.1,%s" % ip_address
-    global service_tenant 
-    
+    global service_tenant
+
     #TODO(ish) : This is crude way of doing. Install keystone client and use that to create tenants, role etc
     admin_tenant = execute("keystone tenant-create --name admin --description 'Admin Tenant' --enabled true |grep ' id '|awk '{print $4}'")
     admin_user = execute("keystone user-create --tenant_id %s --name admin --pass secret --enabled true|grep ' id '|awk '{print $4}'" % admin_tenant)
@@ -162,7 +162,7 @@ def install_and_configure_glance():
 def install_and_configure_nova():
     nova_conf = "/etc/nova/nova.conf"
     nova_paste_conf = "/etc/nova/api-paste.ini"
-    
+
     execute_db_commnads("DROP DATABASE IF EXISTS nova;")
     execute_db_commnads("CREATE DATABASE nova;")
     execute_db_commnads("GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'%' IDENTIFIED BY 'nova';")
@@ -197,9 +197,10 @@ def install_and_configure_nova():
     add_to_conf(nova_conf, "DEFAULT", "neutron_url", "http://%s:9696/"%ip_address)
     add_to_conf(nova_conf, "DEFAULT", "firewall_driver", "nova.virt.firewall.NoopFirewallDriver")
     add_to_conf(nova_conf, "DEFAULT", "security_group_api", "neutron")
+    add_to_conf(nova_conf, "DEFAULT", "metadata_host", "%s" %ip_address_mgnt)
     add_to_conf(nova_conf, "DEFAULT", "service_neutron_metadata_proxy", "true")
     add_to_conf(nova_conf, "DEFAULT", "neutron_metadata_proxy_shared_secret", "helloOpenStack")
-  
+
     execute("nova-manage db sync")
     execute("service nova-api restart", True)
     execute("service nova-cert restart", True)
@@ -213,7 +214,7 @@ def install_and_configure_neutron():
     neutron_conf = "/etc/neutron/neutron.conf"
     neutron_paste_conf = "/etc/neutron/api-paste.ini"
     neutron_plugin_conf = "/etc/neutron/plugins/ml2/ml2_conf.ini"
-       
+
 
     execute_db_commnads("DROP DATABASE IF EXISTS neutron;")
     execute_db_commnads("CREATE DATABASE neutron;")
@@ -246,15 +247,15 @@ def install_and_configure_neutron():
     add_to_conf(neutron_paste_conf, "filter:authtoken", "admin_tenant_name", "service")
     add_to_conf(neutron_paste_conf, "filter:authtoken", "admin_user", "neutron")
     add_to_conf(neutron_paste_conf, "filter:authtoken", "admin_password", "neutron")
-	
+
     add_to_conf(neutron_plugin_conf, "ml2", "type_drivers", "gre")
     add_to_conf(neutron_plugin_conf, "ml2", "tenant_network_types", "gre")
     add_to_conf(neutron_plugin_conf, "ml2", "mechanism_drivers", "openvswitch")
     add_to_conf(neutron_plugin_conf, "ml2_type_gre", "tunnel_id_ranges", "1:1000")
     add_to_conf(neutron_plugin_conf, "securitygroup", "firewall_driver", "neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver")
-	
+
     execute("service neutron-server restart", True)
-   
+
 def install_and_configure_dashboard():
     execute("apt-get install openstack-dashboard -y", True)
     execute("service apache2 restart", True)

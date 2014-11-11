@@ -29,7 +29,7 @@ def install_and_configure_ntp():
     execute("sed -i 's/server 2.ubuntu.pool.ntp.org/#server 2.ubuntu.pool.ntp.org/g' /etc/ntp.conf")
     execute("sed -i 's/server 3.ubuntu.pool.ntp.org/#server 3.ubuntu.pool.ntp.org/g' /etc/ntp.conf")
     execute("sed -i 's/server ntp.ubuntu.com/server %s/g' /etc/ntp.conf" %ip_address)
-    execute("service ntp restart", True)	
+    execute("service ntp restart", True)
 
 
 def install_and_configure_neutron():
@@ -40,9 +40,9 @@ def install_and_configure_neutron():
     neutron_l3_ini="/etc/neutron/l3_agent.ini"
     neutron_metadata_ini="/etc/neutron/metadata_agent.ini"
     execute("apt-get install openvswitch-switch openvswitch-datapath-dkms -y", True)
-	
+
     execute("ovs-vsctl --may-exist add-br br-int")
-    execute("ovs-vsctl --may-exist add-br br-ex") 
+    execute("ovs-vsctl --may-exist add-br br-ex")
     execute("ovs-vsctl --may-exist add-port br-ex eth2")
     execute("apt-get install neutron-plugin-openvswitch-agent neutron-dhcp-agent neutron-l3-agent neutron-metadata-agent -y", True)
 
@@ -68,23 +68,25 @@ def install_and_configure_neutron():
     add_to_conf(neutron_plugin_conf, "OVS", "tunnel_type", "gre")
     add_to_conf(neutron_plugin_conf, "OVS", "integration_bridge", "br-int")
     add_to_conf(neutron_plugin_conf, "securitygroup", "firewall_driver", "neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver")
-    
+
     add_to_conf(neutron_dhcp_ini, "DEFAULT", "interface_driver", "neutron.agent.linux.interface.OVSInterfaceDriver")
     add_to_conf(neutron_dhcp_ini, "DEFAULT", "dhcp_driver", "neutron.agent.linux.dhcp.Dnsmasq")
 
     add_to_conf(neutron_l3_ini, "DEFAULT", "interface_driver", "neutron.agent.linux.interface.OVSInterfaceDriver")
-    
+
     add_to_conf(neutron_metadata_ini, "DEFAULT", "auth_url", "http://%s:5000/v2.0"%ip_address_mgnt)
     add_to_conf(neutron_metadata_ini, "DEFAULT", "auth_region", "region")
     add_to_conf(neutron_metadata_ini, "DEFAULT", "admin_tenant_name", "service")
     add_to_conf(neutron_metadata_ini, "DEFAULT", "admin_user", "neutron")
     add_to_conf(neutron_metadata_ini, "DEFAULT", "admin_password", "neutron")
+    add_to_conf(neutron_metadata_ini, "DEFAULT", "nova_metadata_ip", "%s" %ip_address_mgnt)
+    add_to_conf(neutron_metadata_ini, "DEFAULT", "nova_metadata_port", "8775")
     add_to_conf(neutron_metadata_ini, "DEFAULT", "metadata_proxy_shared_secret", "helloOpenStack")
-	
+
     execute("service neutron-plugin-openvswitch-agent restart", True)
     execute("service neutron-dhcp-agent restart", True)
     execute("service neutron-l3-agent restart", True)
-   
+
 initialize_system()
 install_and_configure_ntp()
 install_and_configure_neutron()
