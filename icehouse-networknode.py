@@ -87,8 +87,8 @@ def install_and_configure_neutron():
     # Generic Receive Offload (GRO) to achieve suitable throughtput between
     # your instances and external network.
     # https://ask.openstack.org/en/question/29147/ssh-to-a-vm-causes-kernel-panic-on-icehouse-neutron-host/
-    execute("ethtool -K em1 gro off")
-    execute("ethtool -K em1 gso off")
+    execute("ethtool -K eth2 gro off")
+    execute("ethtool -K eth2 gso off")
 
     execute("service neutron-plugin-openvswitch-agent restart", True)
     execute("service neutron-dhcp-agent restart", True)
