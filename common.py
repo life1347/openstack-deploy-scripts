@@ -105,7 +105,7 @@ def initialize_system():
     delete_file("/etc/apt/sources.list.d/icehouse.list")
     execute("echo deb http://ubuntu-cloud.archive.canonical.com/ubuntu precise-updates/icehouse main >> /etc/apt/sources.list.d/icehouse.list")
     execute("apt-get update -y", True)
-    execute("apt-get install vlan bridge-utils -y", True)
+    execute("apt-get install vlan bridge-utils ethtool -y", True)
     execute("sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf")
 
     global iniparse
