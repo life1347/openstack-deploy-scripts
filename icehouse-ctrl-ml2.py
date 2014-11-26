@@ -23,17 +23,19 @@ def execute_db_commnads(command):
     output = execute(cmd)
     return output
 
-#=================================================================================
-#==================   Components Installation Starts Here ========================
-#=================================================================================
+# ============================================================================
+# ==================   Components Installation Starts Here ===================
+# ============================================================================
 
 ip_address = get_ip_address("eth0")
 ip_address_mgnt = get_ip_address("eth1")
+
 
 def install_rabbitmq():
     execute("apt-get install rabbitmq-server -y", True)
     execute("service rabbitmq-server restart", True)
     time.sleep(2)
+
 
 def install_database():
     os.environ['DEBIAN_FRONTEND'] = 'noninteractive'
@@ -46,13 +48,14 @@ def install_database():
     except Exception:
         print " Mysql Password already set as : %s " % mysql_password
 
+
 def _create_keystone_users():
     os.environ['SERVICE_TOKEN'] = 'ADMINTOKEN'
-    os.environ['SERVICE_ENDPOINT'] = 'http://%s:35357/v2.0'% ip_address
+    os.environ['SERVICE_ENDPOINT'] = 'http://%s:35357/v2.0' % ip_address
     os.environ['no_proxy'] = "localhost,127.0.0.1,%s" % ip_address
     global service_tenant
 
-    #TODO(ish) : This is crude way of doing. Install keystone client and use that to create tenants, role etc
+    # TODO(ish) : This is crude way of doing. Install keystone client and use that to create tenants, role etc
     admin_tenant = execute("keystone tenant-create --name admin --description 'Admin Tenant' --enabled true |grep ' id '|awk '{print $4}'")
     admin_user = execute("keystone user-create --tenant_id %s --name admin --pass secret --enabled true|grep ' id '|awk '{print $4}'" % admin_tenant)
     admin_role = execute("keystone role-create --name admin|grep ' id '|awk '{print $4}'")
@@ -60,38 +63,38 @@ def _create_keystone_users():
 
     service_tenant = execute("keystone tenant-create --name service --description 'Service Tenant' --enabled true |grep ' id '|awk '{print $4}'")
 
-    #keystone
+    # keystone
     keystone_service = execute("keystone service-create --name=keystone --type=identity --description='Keystone Identity Service'|grep ' id '|awk '{print $4}'")
-    execute("keystone endpoint-create --region region --service_id=%s --publicurl=http://%s:5000/v2.0 --internalurl=http://%s:5000/v2.0 --adminurl=http://%s:35357/v2.0" % (keystone_service, ip_address,ip_address_mgnt,ip_address_mgnt))
+    execute("keystone endpoint-create --region region --service_id=%s --publicurl=http://%s:5000/v2.0 --internalurl=http://%s:5000/v2.0 --adminurl=http://%s:35357/v2.0" % (keystone_service, ip_address, ip_address_mgnt, ip_address_mgnt))
 
-    #Glance
+    # Glance
     glance_user = execute("keystone user-create --tenant_id %s --name glance --pass glance --enabled true|grep ' id '|awk '{print $4}'" % service_tenant)
     execute("keystone user-role-add --user_id %s --tenant_id %s --role_id %s" % (glance_user, service_tenant, admin_role))
 
     glance_service = execute("keystone service-create --name=glance --type=image --description='Glance Image Service'|grep ' id '|awk '{print $4}'")
-    execute("keystone endpoint-create --region region --service_id=%s --publicurl=http://%s:9292/v2 --internalurl=http://%s:9292/v2 --adminurl=http://%s:9292/v2" % (glance_service, ip_address,ip_address_mgnt,ip_address_mgnt))
+    execute("keystone endpoint-create --region region --service_id=%s --publicurl=http://%s:9292/v2 --internalurl=http://%s:9292/v2 --adminurl=http://%s:9292/v2" % (glance_service, ip_address, ip_address_mgnt, ip_address_mgnt))
 
-    #nova
+    # nova
     nova_user = execute("keystone user-create --tenant_id %s --name nova --pass nova --enabled true|grep ' id '|awk '{print $4}'" % service_tenant)
     execute("keystone user-role-add --user_id %s --tenant_id %s --role_id %s" % (nova_user, service_tenant, admin_role))
 
     nova_service = execute("keystone service-create --name=nova --type=compute --description='Nova Compute Service'|grep ' id '|awk '{print $4}'")
-    execute("keystone endpoint-create --region region --service_id=%s --publicurl='http://%s:8774/v2/$(tenant_id)s' --internalurl='http://%s:8774/v2/$(tenant_id)s' --adminurl='http://%s:8774/v2/$(tenant_id)s'" % (nova_service, ip_address,ip_address_mgnt,ip_address_mgnt))
+    execute("keystone endpoint-create --region region --service_id=%s --publicurl='http://%s:8774/v2/$(tenant_id)s' --internalurl='http://%s:8774/v2/$(tenant_id)s' --adminurl='http://%s:8774/v2/$(tenant_id)s'" % (nova_service, ip_address, ip_address_mgnt, ip_address_mgnt))
 
-    #neutron
+    # neutron
     neutron_user = execute("keystone user-create --tenant_id %s --name neutron --pass neutron --enabled true|grep ' id '|awk '{print $4}'" % service_tenant)
     execute("keystone user-role-add --user_id %s --tenant_id %s --role_id %s" % (neutron_user, service_tenant, admin_role))
 
     neutron_service = execute("keystone service-create --name=neutron --type=network  --description='OpenStack Networking service'|grep ' id '|awk '{print $4}'")
-    execute("keystone endpoint-create --region region --service_id=%s --publicurl=http://%s:9696/ --internalurl=http://%s:9696/ --adminurl=http://%s:9696/" % (neutron_service, ip_address,ip_address_mgnt,ip_address_mgnt))
+    execute("keystone endpoint-create --region region --service_id=%s --publicurl=http://%s:9696/ --internalurl=http://%s:9696/ --adminurl=http://%s:9696/" % (neutron_service, ip_address, ip_address_mgnt, ip_address_mgnt))
 
-    #write a rc file
+    # write a rc file
     adminrc = "/root/adminrc"
     delete_file(adminrc)
     write_to_file(adminrc, "export OS_USERNAME=admin\n")
     write_to_file(adminrc, "export OS_PASSWORD=secret\n")
     write_to_file(adminrc, "export OS_TENANT_NAME=admin\n")
-    write_to_file(adminrc, "export OS_AUTH_URL=http://%s:5000/v2.0\n" %ip_address)
+    write_to_file(adminrc, "export OS_AUTH_URL=http://%s:5000/v2.0\n" % ip_address)
 
 
 def install_and_configure_keystone():
@@ -115,6 +118,7 @@ def install_and_configure_keystone():
 
     time.sleep(3)
     _create_keystone_users()
+
 
 def install_and_configure_glance():
     glance_api_conf = "/etc/glance/glance-api.conf"
@@ -159,6 +163,7 @@ def install_and_configure_glance():
     execute("service glance-api restart", True)
     execute("service glance-registry restart", True)
 
+
 def install_and_configure_nova():
     nova_conf = "/etc/nova/nova.conf"
     nova_paste_conf = "/etc/nova/api-paste.ini"
@@ -182,22 +187,22 @@ def install_and_configure_nova():
     add_to_conf(nova_conf, "DEFAULT", "root_helper", "sudo nova-rootwrap /etc/nova/rootwrap.conf")
     add_to_conf(nova_conf, "DEFAULT", "verbose", "True")
     add_to_conf(nova_conf, "DEFAULT", "debug", "True")
-    add_to_conf(nova_conf, "DEFAULT", "rabbit_host", "127.0.0.1" )
-    add_to_conf(nova_conf, "DEFAULT", "rpc_backend", "nova.rpc.impl_kombu" )
+    add_to_conf(nova_conf, "DEFAULT", "rabbit_host", "127.0.0.1")
+    add_to_conf(nova_conf, "DEFAULT", "rpc_backend", "nova.rpc.impl_kombu")
     add_to_conf(nova_conf, "DEFAULT", "sql_connection", "mysql://nova:nova@localhost/nova")
-    add_to_conf(nova_conf, "DEFAULT", "glance_api_servers", "%s:9292" %ip_address)
+    add_to_conf(nova_conf, "DEFAULT", "glance_api_servers", "%s:9292" % ip_address)
     add_to_conf(nova_conf, "DEFAULT", "dhcpbridge_flagfile", "/etc/nova/nova.conf")
     add_to_conf(nova_conf, "DEFAULT", "auth_strategy", "keystone")
     add_to_conf(nova_conf, "DEFAULT", "network_api_class", "nova.network.neutronv2.api.API")
     add_to_conf(nova_conf, "DEFAULT", "neutron_admin_username", "neutron")
     add_to_conf(nova_conf, "DEFAULT", "neutron_admin_password", "neutron")
     add_to_conf(nova_conf, "DEFAULT", "neutron_admin_tenant_name", "service")
-    add_to_conf(nova_conf, "DEFAULT", "neutron_admin_auth_url", "http://%s:5000/v2.0/"%ip_address)
+    add_to_conf(nova_conf, "DEFAULT", "neutron_admin_auth_url", "http://%s:5000/v2.0/" % ip_address)
     add_to_conf(nova_conf, "DEFAULT", "neutron_auth_strategy", "keystone")
-    add_to_conf(nova_conf, "DEFAULT", "neutron_url", "http://%s:9696/"%ip_address)
+    add_to_conf(nova_conf, "DEFAULT", "neutron_url", "http://%s:9696/" % ip_address)
     add_to_conf(nova_conf, "DEFAULT", "firewall_driver", "nova.virt.firewall.NoopFirewallDriver")
     add_to_conf(nova_conf, "DEFAULT", "security_group_api", "neutron")
-    add_to_conf(nova_conf, "DEFAULT", "metadata_host", "%s" %ip_address_mgnt)
+    add_to_conf(nova_conf, "DEFAULT", "metadata_host", "%s" % ip_address_mgnt)
     add_to_conf(nova_conf, "DEFAULT", "service_neutron_metadata_proxy", "true")
     add_to_conf(nova_conf, "DEFAULT", "neutron_metadata_proxy_shared_secret", "helloOpenStack")
 
@@ -215,14 +220,13 @@ def install_and_configure_neutron():
     neutron_paste_conf = "/etc/neutron/api-paste.ini"
     neutron_plugin_conf = "/etc/neutron/plugins/ml2/ml2_conf.ini"
 
-
     execute_db_commnads("DROP DATABASE IF EXISTS neutron;")
     execute_db_commnads("CREATE DATABASE neutron;")
     execute_db_commnads("GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'%' IDENTIFIED BY 'neutron';")
     execute_db_commnads("GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'localhost' IDENTIFIED BY 'neutron';")
 
     execute("apt-get install neutron-server -y", True)
-    execute("apt-get install neutron-plugin-ml2 -y",True)
+    execute("apt-get install neutron-plugin-ml2 -y", True)
     add_to_conf(neutron_conf, "DEFAULT", "core_plugin", "neutron.plugins.ml2.plugin.Ml2Plugin")
     add_to_conf(neutron_conf, "DEFAULT", "service_plugins", "neutron.services.l3_router.l3_router_plugin.L3RouterPlugin")
     add_to_conf(neutron_conf, "database", "connection", "mysql://neutron:neutron@localhost/neutron")
@@ -253,8 +257,9 @@ def install_and_configure_neutron():
     add_to_conf(neutron_plugin_conf, "ml2", "mechanism_drivers", "openvswitch")
     add_to_conf(neutron_plugin_conf, "ml2_type_gre", "tunnel_id_ranges", "1:1000")
     add_to_conf(neutron_plugin_conf, "securitygroup", "firewall_driver", "neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver")
-
+    add_to_conf(neutron_plugin_conf, "securitygroup", "enable_security_group", "True")
     execute("service neutron-server restart", True)
+
 
 def install_and_configure_dashboard():
     execute("apt-get install openstack-dashboard -y", True)
