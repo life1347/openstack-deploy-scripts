@@ -19,7 +19,7 @@ psutil = None
 
 my_ip = get_ip_address('eth1')
 ip_address = raw_input('Controller IP: ')
-ip_address_mgnti = raw_input('Controller Mgmt IP: ')
+ip_address_mgnt = raw_input('Controller Mgmt IP: ')
 
 
 def install_and_configure_ntp():
