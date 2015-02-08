@@ -39,7 +39,7 @@ def install_rabbitmq():
 
 def install_database():
     os.environ['DEBIAN_FRONTEND'] = 'noninteractive'
-    execute("apt-get install mariadb-server python-mysqldb mysql-client-5.5 -y", True)
+    execute("apt-get install mysql-server python-mysqldb mysql-client-5.5 -y", True)
     execute("sed -i 's/127.0.0.1/0.0.0.0/g' /etc/mysql/my.cnf")
     execute("service mysql restart", True)
     time.sleep(2)
