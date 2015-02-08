@@ -257,15 +257,18 @@ def install_and_configure_neutron():
     add_to_conf(neutron_plugin_conf, "ml2_type_gre", "tunnel_id_ranges", "1:1000")
     add_to_conf(neutron_plugin_conf, "securitygroup", "firewall_driver", "neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver")
     add_to_conf(neutron_plugin_conf, "securitygroup", "enable_security_group", "True")
+
+    execute("neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade juno", True);
     execute("service neutron-server restart", True)
 
 
 def install_and_configure_dashboard():
     execute("apt-get install openstack-dashboard -y", True)
+    execute("apt-get remove --purge openstack-dashboard-ubuntu-theme -y", True)
     execute("service apache2 restart", True)
 
 initialize_system()
-#install_rabbitmq()
+install_rabbitmq()
 install_database()
 install_and_configure_keystone()
 install_and_configure_glance()
