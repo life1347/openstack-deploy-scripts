@@ -94,7 +94,7 @@ def install_and_configure_ovs():
 
     execute("ovs-vsctl --may-exist add-br br-int")
 
-    execute("apt-get install neutron-plugin-openvswitch-agent -y", True)
+    execute("apt-get install neutron-plugin-ml2 neutron-plugin-openvswitch-agent -y", True)
 
     add_to_conf(neutron_conf, "DEFAULT", "core_plugin", "neutron.plugins.openvswitch.ovs_neutron_plugin.OVSNeutronPluginV2")
     add_to_conf(neutron_conf, "DEFAULT", "verbose", "True")
@@ -121,6 +121,7 @@ def install_and_configure_ovs():
     add_to_conf(neutron_plugin_conf, "securitygroup", "enable_security_group", "True")
 
     execute("service neutron-plugin-openvswitch-agent restart", True)
+    execute("service openvswitch-switch restart", True)
 
 initialize_system()
 install_and_configure_ntp()
