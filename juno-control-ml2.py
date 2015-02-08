@@ -265,7 +265,7 @@ def install_and_configure_dashboard():
     execute("service apache2 restart", True)
 
 initialize_system()
-install_rabbitmq()
+#install_rabbitmq()
 install_database()
 install_and_configure_keystone()
 install_and_configure_glance()
