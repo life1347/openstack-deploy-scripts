@@ -45,7 +45,7 @@ def install_and_configure_neutron():
     execute("ovs-vsctl --may-exist add-br br-int")
     execute("ovs-vsctl --may-exist add-br br-ex")
     execute("ovs-vsctl --may-exist add-port br-ex eth2")
-    execute("apt-get install neutron-plugin-openvswitch-agent neutron-dhcp-agent neutron-l3-agent neutron-metadata-agent -y", True)
+    execute("apt-get install neutron-plugin-ml2 neutron-plugin-openvswitch-agent neutron-dhcp-agent neutron-l3-agent neutron-metadata-agent -y", True)
 
     add_to_conf(neutron_conf, "DEFAULT", "core_plugin", "neutron.plugins.openvswitch.ovs_neutron_plugin.OVSNeutronPluginV2")
     add_to_conf(neutron_conf, "DEFAULT", "verbose", "True")
@@ -95,7 +95,9 @@ def install_and_configure_neutron():
     execute("service neutron-plugin-openvswitch-agent restart", True)
     execute("service neutron-dhcp-agent restart", True)
     execute("service neutron-l3-agent restart", True)
+    execute("service neutron-metadata-agent restart", True)
 
 initialize_system()
 install_and_configure_ntp()
 install_and_configure_neutron()
+    
