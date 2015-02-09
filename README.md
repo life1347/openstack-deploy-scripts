@@ -1,4 +1,4 @@
-Openstack Icehouse Installation scripts for Ubuntu 14.04 LTS
+Openstack Juno Installation scripts for Ubuntu 14.04 LTS
 ================
 
 For Openstack Controller :
